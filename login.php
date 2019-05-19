@@ -69,7 +69,6 @@ if (isset($_POST['userName'])
 		}
 }
 
-
 function mysql_entities_fix_string($connection, $string) 
 	  {		
 		  return htmlentities(mysql_fix_string(createDBConnection(), $string));
@@ -80,5 +79,4 @@ function mysql_entities_fix_string($connection, $string)
 			  $string = stripslashes($string);
 		  return $connection->real_escape_string($string);
 	  }
-
 ?>
