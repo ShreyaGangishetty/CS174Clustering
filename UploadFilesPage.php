@@ -35,7 +35,38 @@ else{
 }
 if (isset($_POST['predict']))
 { 
-  echo "inside correct place";
+  //echo "inside correct place";
+  $selected_model = $_POST['testModels'];
+  $selected_modelArray = explode ("_", $selected_model);  
+  
+  $modelType= $selected_modelArray[0];
+  $modelName= $selected_modelArray[1];
+  $trained_model = get_model_data($modelName, $modelType);
+  //$test_input=;  
+  if($_POST['radioEntryTest']=='fileEntryTest'){
+    $_SESSION['file_nameTest'] = $_FILES['file_uploadTest']['name'];
+    $file_name = $_FILES['file_uploadTest']['name'];
+    $content = $_FILES['file_uploadTest'];
+    //print_r($content);
+    switch ($_FILES['file_uploadTest']['type']) {
+      case 'text/plain':  $ext = 'txt'; break;
+      default:      $ext = ''; break;
+    }
+    if($ext) {
+      $testData = json_decode(file_get_contents($file_name), true);
+      $output = kmeans_test($testData, json_decode($trained_model[0]));
+      echo "$output";
+    } else {
+      echo "$file_name is not acceptable. Only upload text files.";
+    }
+  }
+  else if($_POST['radioEntryTest']=='manualEntryTest'){
+    $output = kmeans_test($_POST['inputDataTest'], json_decode($trained_model[0]));
+    echo "$output"; 
+  }
+  else {
+    echo "no radio button selected";
+  }
   /*
     get the selected drop don menu
     split it 
@@ -43,16 +74,16 @@ if (isset($_POST['predict']))
     //call test kmeans
     display result
   */
-}
+  }
 
-function manualKmeans(){
-  echo "<br> manual K means <br>";
-  $data = json_decode($_POST['inputData']);
-  $file_content = kmeans_train($data);
-}
+  function manualKmeans(){
+    echo "<br> manual K means <br>";
+    $data = json_decode($_POST['inputData']);
+    $file_content = kmeans_train($data);
+  }
 
-function fileKmeans(){
-  echo "<br> file K means <br>";
+  function fileKmeans(){
+    echo "<br> file K means <br>";
     //$db_conn = $_SESSION['db_conn'];
     if (isset($_POST['modelName']) && $_POST['modelName'] != "" && $_FILES) { //
       $_SESSION['file_name'] = $_FILES['file_upload']['name'];
@@ -71,7 +102,7 @@ function fileKmeans(){
         echo "$file_name is not acceptable. Only upload text files.";
       }
     }
-    echo "<br>here2<br>";
+    //echo "<br>here2<br>";
     //display_when_logged_in($db_conn, $username);
     // destroy_session_and_data($username);
   }
@@ -105,11 +136,14 @@ function fileKmeans(){
       //return $centroidPoints;
   }
 
-  function kmeans_test($test_file_name, $centroidPoints) {
-    echo "<br>here6<br>";
+  function kmeans_test($points, $centroidPoints) {
     foreach ($points as $key => $value) {
       $minValue = 100000;
       $minCentroid = 0;
+      //echo "<br>helloo";
+      //print_r($centroidPoints);
+      //print_r($centroidPoints[0]);
+
       foreach ($centroidPoints as $centroidKeys => $centroidValues) {
         $distance = sqrt(($value[0] - $centroidValues[0])^2 + ($value[1] - $centroidValues[1])^2);
         if ($distance < $minValue) {
@@ -117,7 +151,7 @@ function fileKmeans(){
           $minCentroid = $centroidKeys;
         }
       }
-      echo "$minCentroid";
+      //echo "$minCentroid";
 
     }
   }
@@ -143,6 +177,26 @@ function fileKmeans(){
     $result = $db_conn->query($query);
     if(!$result) die("Insert into database failed: " . $db_conn->error);
     //$db_conn->close();
+  }
+
+  function get_model_data($modelName, $modelType) {
+    $userName = $_SESSION['userName'];
+    $db_conn = $_SESSION['db_conn'];
+    $query = "SELECT model_data FROM models_table WHERE user_name= '$userName' AND model_type = '$modelType' AND model_name = '$modelName'";
+    $result =  $db_conn->query($query);
+    if(!$result) die("model retrieval from db failed: " . $db_conn->error);
+    elseif ($result) {
+      $rows = $result->num_rows;
+      $output = array();
+      for ($j = 0 ; $j < $rows ; ++$j){
+        $result->data_seek($j);
+        $row = $result->fetch_array(MYSQLI_ASSOC);
+        array_push($output, $row['model_data']);
+      }
+      $result->close();
+      //$db_conn->close();
+      return $output;
+    }
   }
 
   function fetch_models() {
@@ -220,30 +274,30 @@ function fileKmeans(){
        text.style.display = "none";
      }
    }
-    function fileFormTest() {
-      var radioButton = document.getElementById("fileEntryTest");
-      var text = document.getElementById("fileDivTest");
-      var manualDiv = document.getElementById("manualDivTest");
-      if (radioButton.checked == true){
-        text.style.display = "block";
-        manualDiv.style.display = "none";
-      } else {
-       text.style.display = "none";
-     }
-   }
-   function manualFormTest() {
-    var radioButton = document.getElementById("manualEntryTest");
-    var text = document.getElementById("manualDivTest");
-    var fileDiv = document.getElementById("fileDivTest");
+   function fileFormTest() {
+    var radioButton = document.getElementById("fileEntryTest");
+    var text = document.getElementById("fileDivTest");
+    var manualDiv = document.getElementById("manualDivTest");
     if (radioButton.checked == true){
-      fileDiv.style.display = "none";
       text.style.display = "block";
+      manualDiv.style.display = "none";
     } else {
      text.style.display = "none";
    }
  }
+ function manualFormTest() {
+  var radioButton = document.getElementById("manualEntryTest");
+  var text = document.getElementById("manualDivTest");
+  var fileDiv = document.getElementById("fileDivTest");
+  if (radioButton.checked == true){
+    fileDiv.style.display = "none";
+    text.style.display = "block";
+  } else {
+   text.style.display = "none";
+ }
+}
 
- </script>
+</script>
 </head>
 <body>
 
@@ -253,7 +307,7 @@ function fileKmeans(){
     <div class="column">
       <h2>Train Model</h2>
       <form name="form" role="form" method="post" enctype="multipart/form-data" action="UploadFilesPage.php">
-        <label for="fileName">Input Model Name</label>
+        <label for="modelName">Input Model Name</label>
         <input type="text" name="modelName" id="modelName" class="form-control"  required />
         
 
@@ -288,7 +342,7 @@ function fileKmeans(){
     </div>
 
     <!-- test-->
-    <div class="column" style="background-color:#bbb;">
+    <div class="column" >
       <h2>Test Model</h2>
       <form name="form" role="form" method="post" enctype="multipart/form-data" action="UploadFilesPage.php">
         <div class="form-group">
@@ -320,7 +374,7 @@ function fileKmeans(){
 
 
           <div id="manualDivTest" style="display:none">
-            <label for="inputDataTest"> Enter Train Data</label><br/>
+            <label for="inputDataTest"> Enter Test Data</label><br/>
             <textarea rows="4" cols="50" name="inputDataTest" id="inputDataTest"></textarea><br/>
           </div>
 
