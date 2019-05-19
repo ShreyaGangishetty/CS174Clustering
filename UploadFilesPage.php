@@ -299,7 +299,7 @@ if (isset($_POST['logout']))
   logout();
 }
 
-?>
+echo <<<_END
 
 
 <!DOCTYPE html>
@@ -394,7 +394,11 @@ function manualFormTest() {
 </head>
 <body>
 
-  <h2>Hello and Welcome: <?php echo $_SESSION['userName'];?></h2>
+  <h2>Hello and Welcome: 
+_END;
+ echo $_SESSION['userName'];
+echo <<<_END
+ </h2>
 
   <div class="row" style = "margin-left: 2%;margin-right: 2%">
     <div class="column">
@@ -442,18 +446,20 @@ function manualFormTest() {
           <label for="testModels">List of available trained models</label><br>
           <select name="testModels" id="testModels">
             <!-- <option >Choose one</option>--><!--selected="selected" -->
-            <?php
+_END;
+            
             $models = fetch_models();
             // Iterating through the product array
             //echo "hello";
             //print_r($models);
             //echo count($models);
             foreach($models as $item){
-              ?>
-              <option value="<?php echo $item; ?>" selected ="selected"><?php echo $item; ?></option>
+            ?>
+            <option value="<?php echo $item; ?>" selected ="selected"><?php echo $item; ?></option>
               <?php
             }
-            ?>
+            
+            echo <<<_END
           </select>
         </div>
         <h3>Test Data</h3>
@@ -486,14 +492,15 @@ function manualFormTest() {
         </form>
         <div><h2>Cluster output Data</h2>
           <div>
-          <?php 
+_END;
+         
           if($_SESSION['kmeansTestResult']){
             echo "<br>Test points in Cluster 1: <br>";
             print_r($_SESSION['kmeansTestResult'][0]);
             echo "<br>Test points in Cluster 2: <br>";
             print_r($_SESSION['kmeansTestResult'][1]);
           }
-          ?>
+        echo <<<_END
         </div>
           <div id="chartContainer" name="chartContainer" style="height: 370px; width: 100%;"></div>
           <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
@@ -509,3 +516,4 @@ function manualFormTest() {
 </form> 
 </body>
 </html>
+_END;
