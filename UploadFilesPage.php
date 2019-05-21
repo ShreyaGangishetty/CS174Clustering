@@ -356,7 +356,8 @@ function fileKmeans(){
     $db_conn = $_SESSION['db_conn'];
     echo "<br> manual EM Cluster <br>";
     $data = json_decode(mysql_entities_fix_string($db_conn, $_POST['inputData']));
-    $file_content = emcluster_train($data);
+    //emcluster_train($data);
+    echo "em cluster train code is attached in EM.php but could not complete due to jar errors";
   }
 
 
@@ -374,7 +375,9 @@ function fileKmeans(){
       }
       if($ext) {
         $data = json_decode(mysql_entities_fix_string($db_conn, file_get_contents($file_name)), true);
-        emcluster_train($data);
+        //emcluster_train($data);
+        echo "em cluster train code is attached in EM.php but could not complete due to jar errors";
+
       } else {
         echo "$file_name is not acceptable. Only upload text files.";
       }
