@@ -94,7 +94,11 @@ class User{
 		  //if($duplicate) 
 		  die($connection->error);
 	  }
-	  else return 1;
+	  else 
+	  {
+	  	$connection->close();
+	  	return 1;
+	  }
   }
   
   
@@ -110,12 +114,10 @@ class User{
 		  {
 			  $row = $result->fetch_array(MYSQLI_NUM);
 			  $result->close();
-			  print_r($row[4]);
 			  $SALT1 = "qm&h*";
 			  $SALT2 = "pg!@";
 			  $token = hash('ripemd128', "$SALT1$password$SALT2");
 			  $connection->close();
-			  echo "token..".$token;
 			  if ($token == $row[4]) 
 			  {
 				  echo "$row[0] $row[1] : Hello and welcome, $row[0], you are now logged in as '$row[2]'";

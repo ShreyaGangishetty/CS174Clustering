@@ -1,6 +1,7 @@
 <?php
 require_once('dbConnection.php');
 $formattedDataPoints = plot_kmeans();
+
 function plot_kmeans(){
 	$formattedDataPoints = array();
 	$testOutputPoints = $_SESSION['kmeansTestResult'];
@@ -18,6 +19,7 @@ function plot_kmeans(){
 }
 
 ?>
+
 <!DOCTYPE HTML>
 <html>
 <head>

@@ -4,11 +4,57 @@ require_once('dbConnection.php');
 
 $firstName = $lastName = $userName = $password = $email = "";
 
-function fix_string($string) {
+if (isset($_POST['submit'])) {
+    $dbConn = createDBConnection();
+    $_SESSION['db_conn'] = $dbConn;    
+    $response = validateUserRegInput();
+	$pattern_duplicateUser = "duplicate";
+    if ($response == "") {
+        $firstName = fix_string($dbConn, $_POST['firstName']);
+        $lastName = fix_string($dbConn, $_POST['lastName']);
+        $userName = fix_string($dbConn, $_POST['userName']);
+        $email = fix_string($dbConn, $_POST['email']);
+		$password = fix_string($dbConn, $_POST['password']);
+        $user = new User;
+		$user->setFirstname($firstName);
+        $user->setLastName($lastName);
+        $user->setEmail($email);
+        $user->setPasswordHash($password);
+        $user->setUserName($userName);
+		
+        $result = $user->add_user($dbConn, $firstName, $lastName, $userName, $password, $email);
+        if ($result) 
+		{
+            echo "User registered successfully !";
+            include 'login.php';
+        } 
+		else 
+		{
+            echo "User already exists!";
+        }
+    }
+   	else
+    {
+        echo "Response from server is: $response ";
+    }
+    if($dbConn)  $dbConn->close();
+}
+
+function fix_string($connection, $string) 
+      {     
+          return htmlentities(real_escape($connection, $string));
+      }
+function real_escape($connection, $string) 
+      {
+          if (get_magic_quotes_gpc()) 
+              $string = stripslashes($string);
+          return $connection->real_escape_string($string);
+      }
+/*function fix_string($string) {
     if (get_magic_quotes_gpc())
         $string = stripslashes($string);
         return htmlentities ($string);
-}
+}*/
 
 function validateFirstName($field) {
     return ($field == "") ? "No Firstname entered.<br>" : "";
@@ -59,20 +105,21 @@ function validateEmail($field) {
 
 function validateUserRegInput(){
     $fail = "";
+    $dbConn = $_SESSION['db_conn'];
     if (isset($_POST['firstName'])) {
-        $firstName = fix_string($_POST['firstName']);
+        $firstName = fix_string($dbConn, $_POST['firstName']);
     }
     if (isset($_POST['lastName'])) {
-        $lastName = fix_string($_POST['lastName']);
+        $lastName = fix_string($dbConn, $_POST['lastName']);
     }
     if (isset($_POST['userName'])) {
-        $userName = fix_string($_POST['userName']);
+        $userName = fix_string($dbConn, $_POST['userName']);
     }
     if (isset($_POST['password'])) {
-        $password = fix_string($_POST['password']);
+        $password = fix_string($dbConn, $_POST['password']);
     }
     if (isset($_POST['email'])) {
-        $email = fix_string($_POST['email']);
+        $email = fix_string($dbConn, $_POST['email']);
     }
 
     $fail = validateFirstname($firstName);
@@ -83,41 +130,6 @@ function validateUserRegInput(){
 
     return $fail;
 
-}
-
-if (isset($_POST['submit'])) {
-    $response = validateUserRegInput();
-	$pattern_duplicateUser = "duplicate";
-    if ($response == "") {
-        $firstName = fix_string($_POST['firstName']);
-        $lastName = fix_string($_POST['lastName']);
-        $userName = fix_string($_POST['userName']);
-        $email = fix_string($_POST['email']);
-		$password = fix_string($_POST['password']);
-        $user = new User;
-		$user->setFirstname($firstName);
-        $user->setLastName($lastName);
-        $user->setEmail($email);
-        $user->setPasswordHash($password);
-        $user->setUserName($userName);
-		$dbConn = createDBConnection();
-        $user->dbConn = $dbConn;
-
-        $result = $user->add_user($dbConn, $firstName, $lastName, $userName, $password, $email);
-        $dbConn -> close();
-        if ($result) 
-		{
-            echo "<p> User registered successfully !</p>";
-
-            include 'login.php';
-        } 
-		else 
-		{
-            echo "<p> User already exits!";
-        }
-    }
-   	else
-		echo "<p> $response </p>";
 }
 
 ?>

@@ -44,36 +44,36 @@ require_once('user.php');
 
 if (isset($_POST['userName'])
     && isset($_POST['password'])) {
-	    $_SESSION['userName'] = $_POST['userName'];
-    	$_SESSION['password'] = $_POST['password'];	
-		$dbConn = createDBConnection();
+	    $dbConn = createDBConnection();
         $newUser = new User();
         $fixedUserName = mysql_entities_fix_string($dbConn, $_POST['userName']);
         $newUser->setUsername($fixedUserName);
         $newUser->setPasswordHash($_POST['password']);
         $newUser->setDbConn($dbConn);
+        $_SESSION['userName'] = $fixedUserName;
+    	$_SESSION['password'] = $newUser->getPasswordHash();	
+		
 
        $userAuthentic = $newUser->authenticateUser($dbConn, $newUser);
-       echo "user".$userAuthentic;
+       //echo "user".$userAuthentic;
        if($userAuthentic=="success")
 	   {
 		   $validUser = $newUser->getAuthenticatedUser($dbConn, $newUser);
 		   $dbConn->close();
 		   header('Location:http://localhost/CS174Cluster/UploadFilesPage.php');
 	   }
-				
-		else
+	   else
 		{
+			//$dbConn->close();
 			echo "Error with login";
-			echo $userAuthentic;
 		}
 }
 
 function mysql_entities_fix_string($connection, $string) 
 	  {		
-		  return htmlentities(mysql_fix_string(createDBConnection(), $string));
+		  return htmlentities(mysql_fix_string($connection, $string));
 	  }
-	  function mysql_fix_string($connection, $string) 
+function mysql_fix_string($connection, $string) 
 	  {
 		  if (get_magic_quotes_gpc()) 
 			  $string = stripslashes($string);
